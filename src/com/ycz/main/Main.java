@@ -2144,7 +2144,8 @@ public class Main {
 					System.out.println("5、播放音乐");
 					System.out.println("6、从网上下载一首歌");
 					System.out.println("7、读取文件显示到控制台");
-					System.out.println("8、常用校验");;
+					System.out.println("8、常用校验");
+					;
 					System.out.println("9、返回上一页");
 					System.out.println("请选择：");
 					String cho = in.next();
