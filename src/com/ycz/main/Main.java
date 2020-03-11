@@ -2,10 +2,13 @@ package com.ycz.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.ycz.pojo.Student;
 import com.ycz.pojo.Teacher;
@@ -45,6 +48,7 @@ public class Main {
 			System.out.println("------------------------------");
 			System.out.println("请选择相应的选项：");
 			String res = in.next();
+			System.out.println("------------------------------");
 			switch (res) {
 			case "1":
 				// 在输入用户名之前，先从本地将保存用户名和密码的文件读取出来，以便接下来验证
@@ -2131,6 +2135,341 @@ public class Main {
 				} while (b18);
 				break;
 			case "4":
+				boolean b60 = false;
+				do {
+					System.out.println("1、计算质数");
+					System.out.println("2、查看电脑信息");
+					System.out.println("3、查看目录");
+					System.out.println("4、压缩文件");
+					System.out.println("5、播放音乐");
+					System.out.println("6、从网上下载一首歌");
+					System.out.println("7、读取文件显示到控制台");
+					System.out.println("8、常用校验");;
+					System.out.println("9、返回上一页");
+					System.out.println("请选择：");
+					String cho = in.next();
+					System.out.println("------------------------------");
+					switch (cho) {
+					case "1":
+						System.out.println("请输入任意一个整数：");
+						int num = in.nextInt();
+						System.out.println("------------------------------");
+						List<Integer> lis = MethodsManager.isPrimeNumber(num);
+						System.out.println(num + "以内的质数一共有" + lis.size() + "个，具体如下：");
+						int j = 0;
+						for (int i : lis) {
+							System.out.print(i + "\t");
+							j++;
+							if (j % 10 == 0) {// 10个一行
+								System.out.println();
+							}
+						}
+						System.out.println();
+						System.out.println("请输入任意内容返回上一页：");
+						String any = in.next();
+						System.out.println("------------------------------");
+						b60 = true;
+						break;
+					case "2":
+						System.out.println("当前电脑磁盘总空间为：465GB");
+						System.out.println("当前电脑内存总空间为：4GB");
+						System.out.println("当前电脑系统版本为：Windows Server 2012 Standard");
+						System.out.println("当前电脑系统盘为：F盘");
+						System.out.println("当前电脑总共有4个磁盘，分别为C盘、D盘、E盘、F盘");
+						System.out.println("请输入任意内容返回上一页：");
+						String any2 = in.next();
+						System.out.println("------------------------------");
+						b60 = true;
+						break;
+					case "3":
+						boolean b61 = false;
+						do {
+							System.out.println("请输入C、D、E、F中的任意一个盘符：");
+							String name = in.next();
+							System.out.println("------------------------------");
+							if (name.equals("c") || name.equals("C") || name.equals("d") || name.equals("D")
+									|| name.equals("e") || name.equals("E") || name.equals("f") || name.equals("F")) {
+								MethodsManager.getDic(name);
+								System.out.println("------------------------------");
+								System.out.println("请输入任意内容返回上一页：");
+								String any3 = in.next();
+								System.out.println("------------------------------");
+								b61 = false;
+								b60 = true;
+							} else {
+								b61 = true;
+								System.out.println("输入无效，请重新输入：");
+								System.out.println("------------------------------");
+							}
+						} while (b61);
+						break;
+					case "4":
+						boolean b62 = false;
+						do {
+							System.out.println("请输入一个路径：");
+							String path = in.next();
+							File file = new File(path);
+							if (!file.exists()) {
+								System.out.println("路径不存在！请重新输入：");
+								b62 = true;
+							} else {
+								if (file.isDirectory()) {
+									System.out.println("该路径是一个目录！");
+									System.out.println("开始压缩...");
+									try {
+										MethodsManager.compress(path, path + ".zip");
+										System.out.println("按任意键返回上一页：");
+										String any21 = in.next();
+										System.out.println("------------------------------");
+										b62 = false;
+										b60 = true;
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+								} else {
+									System.out.println("该路径是一个文件！");
+									System.out.println("开始压缩...");
+									try {
+										MethodsManager.compress(path, path.replace(".txt", ".zip"));
+										System.out.println("按任意键返回上一页：");
+										String any22 = in.next();
+										System.out.println("------------------------------");
+										b62 = false;
+										b60 = true;
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+								}
+							}
+						} while (b62);
+						break;
+					case "5":
+						String dicName = "F:/音乐文件";
+						boolean b63 = false;
+						int count = 1;
+						Thread t1 = null;
+						do {
+							List<String> lis2 = MethodsManager.getMusic(dicName);
+							System.out.println("0、返回上一页");
+							boolean b64 = false;
+							do {
+								System.out.println("请选择序号播放：");
+								String cho5 = in.next();
+								System.out.println("------------------------------");
+								if (!"1-2-3-4-5-6-7-8-9-10".contains(cho5)) {
+									System.out.println("选择无效，请重新选择：");
+									b64 = true;
+								} else {
+									b64 = false;
+									if (count == 1) {
+										t1 = MethodsManager.playMp3(
+												dicName + "/" + lis2.get(Integer.parseInt(cho5) - 1),
+												lis2.get(Integer.parseInt(cho) - 1));
+									} else {
+										if (!lis2.get(Integer.parseInt(cho5) - 1).equals(t1.getName())) {
+											t1.stop();
+											t1 = MethodsManager.playMp3(
+													dicName + "/" + lis2.get(Integer.parseInt(cho5) - 1),
+													lis2.get(Integer.parseInt(cho) - 1));
+										}
+									}
+								}
+							} while (b64);
+							count++;
+							System.out.println("按任意键返回上一页");
+							String any9 = in.next();
+							System.out.println("------------------------------");
+							b63 = true;
+						} while (b63);
+						break;
+					case "6":
+						String filePath = "F:/音乐文件";
+						String name = "爱江山更爱美人.mp3";
+						System.out.println("请输入下载歌曲的url链接：");
+						String url = in.next();
+						MethodsManager.downMp3(url, filePath, name);
+						System.out.println("是否进行播放？");
+						System.out.println("1、是");
+						System.out.println("2、否");
+						System.out.println("请选择：");
+						String choice = in.next();
+						System.out.println("------------------------------");
+						if (choice.equals("1")) {
+							MethodsManager.playMp3(filePath + "/" + name, name);
+							b60 = true;
+						} else {
+							b60 = true;
+						}
+						break;
+					case "7":
+						boolean b65 = false;
+						do {
+							System.out.println("请输入文件路径：");
+							String path = in.next();
+							System.out.println("------------------------------");
+							File file = new File(path);
+							if (!file.exists()) {
+								System.out.println("路径不存在，请重新输入：");
+								b65 = true;
+							} else {
+								System.out.println("读取完毕，内容如下：");
+								System.out.println(MethodsManager.readMsg(path));
+								System.out.println("输入任意内容返回上一页：");
+								String any13 = in.next();
+								System.out.println("------------------------------");
+								b65 = false;
+								b60 = true;
+							}
+						} while (b65);
+						break;
+					case "8":
+						boolean b66 = false;
+						do {
+							System.out.println("1、验证手机号码：");
+							System.out.println("2、验证邮箱：");
+							System.out.println("3、验证密码强度：");
+							System.out.println("4、验证是否为字母：");
+							System.out.println("5、验证是否为数字：");
+							System.out.println("6、验证是否为中文：");
+							System.out.println("7、返回上一页：");
+							System.out.println("请选择：");
+							String cho13 = in.next();
+							System.out.println("------------------------------");
+							switch (cho13) {
+							case "1":
+								String regex = "^1[3|4|5|7|8][0-9]\\d{4,8}";
+								boolean b67 = false;
+								do {
+									System.out.println("请输入11位的手机号码：");
+									String phone = in.next();
+									System.out.println("------------------------------");
+									if (phone.length() != 11) {
+										System.out.println("号码长度有误！请输入11位号码：");
+										b67 = true;
+									} else {
+										Pattern p = Pattern.compile(regex);
+										Matcher m = p.matcher(phone);
+										if (m.matches()) {
+											System.out.println("手机号" + phone + "是正确格式！");
+										} else {
+											System.out.println("手机号" + phone + "是错误格式！");
+										}
+										System.out.println("按任意键返回上一页：");
+										String any14 = in.next();
+										System.out.println("------------------------------");
+										b67 = false;
+										b66 = true;
+									}
+								} while (b67);
+								break;
+							case "2":
+								String regex2 = "^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)"
+										+ "+[a-zA-Z]{2,}$";
+								System.out.println("请输入邮箱：");
+								String email = in.next();
+								Pattern p = Pattern.compile(regex2);
+								Matcher m = p.matcher(email);
+								if (m.matches()) {
+									System.out.println("邮箱地址" + email + "格式正确！");
+								} else {
+									System.out.println("邮箱地址" + email + "格式错误！");
+								}
+								System.out.println("按任意键返回上一页：");
+								String any15 = in.next();
+								System.out.println("------------------------------");
+								b66 = true;
+								break;
+							case "3":
+								boolean b68 = false;
+								do {
+									System.out.println("请输入密码：");
+									String pass = in.next();
+									System.out.println("------------------------------");
+									if (pass.length() < 6) {
+										System.out.println("密码长度过短！");
+										System.out.println("请重新输入：");
+										b68 = true;
+									} else if (pass.length() > 16) {
+										System.out.println("密码长度过长！");
+										System.out.println("请重新输入：");
+										b68 = true;
+									} else {
+										MethodsManager.validatePass(pass);
+										System.out.println("按任意键返回上一页：");
+										String any16 = in.next();
+										System.out.println("------------------------------");
+										b68 = false;
+										b66 = true;
+									}
+								} while (b68);
+								break;
+							case "4":
+								System.out.println("请输入一个字符：");
+								String sd = in.next();
+								char ch = sd.toCharArray()[0];
+								if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z') {
+									System.out.println(sd + "是字母");
+								} else {
+									System.out.println(sd + "不是字母");
+								}
+								System.out.println("按任意键返回上一页：");
+								String any17 = in.next();
+								System.out.println("------------------------------");
+								b66 = true;
+								break;
+							case "5":
+								String regnum = "\\d+";
+								System.out.println("请输入一个数字：");
+								String s2 = in.next();
+								Pattern p3 = Pattern.compile(regnum);
+								Matcher m3 = p3.matcher(s2);
+								if (m3.matches()) {
+									System.out.println(s2 + "是数字");
+								} else {
+									System.out.println(s2 + "不是数字");
+								}
+								System.out.println("按任意键返回上一页：");
+								String any18 = in.next();
+								System.out.println("------------------------------");
+								b66 = true;
+								break;
+							case "6":
+								System.out.println("请输入一个字符：");
+								String zh = in.next();
+								String s = zh.substring(0, 1);
+								if (s.matches("[\u4e00-\u9fa5]")) {
+									System.out.println(zh + "是中文");
+								} else {
+									System.out.println(zh + "不是中文");
+								}
+								System.out.println("按任意键返回上一页：");
+								String any19 = in.next();
+								System.out.println("------------------------------");
+								b66 = true;
+								break;
+							case "7":
+								b66 = false;
+								b60 = true;
+								break;
+							default:
+								System.out.println("输入无效！请重新输入：");
+								System.out.println("------------------------------");
+								b66 = true;
+								break;
+							}
+						} while (b66);
+						break;
+					case "9":
+						b60 = false;
+						b0 = true;
+						break;
+					default:
+						System.out.println("输入无效，请重新输入：");
+						b60 = true;
+						System.out.println("------------------------------");
+						break;
+					}
+				} while (b60);
 				break;
 			default:
 				System.out.println("选项无效，请输入有效数字：");

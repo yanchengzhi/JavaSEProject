@@ -1,24 +1,41 @@
 package com.ycz.util;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import com.ycz.pojo.Student;
 import com.ycz.pojo.Teacher;
+
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.Player;
 
 /**
  * 此类用来封装一些方法
@@ -28,7 +45,7 @@ import com.ycz.pojo.Teacher;
  */
 public final class MethodsManager {
 
-	// 定义一个方法，用于读取用户名和密码
+	// 定义一个方法，用于读取文件内容
 	public static String readMsg(String filePath) {
 		StringBuilder sb = new StringBuilder("");
 		File file = new File(filePath);// 实例化文件对象
@@ -407,7 +424,7 @@ public final class MethodsManager {
 		Teacher t = (Teacher) MethodsManager.readObj(dicName + "/" + name + ".txt");
 		return t.getCourse();
 	}
-	
+
 	// 定义一个方法，获取老师所教授的课程
 	public static String getCourse2(String dicName, String name) {
 		Student s = (Student) MethodsManager.readObj(dicName + "/" + name + ".txt");
@@ -565,9 +582,9 @@ public final class MethodsManager {
 				.append(100 - (Math.rint(count / countSum * 100)) + "%");
 		return sb.toString();
 	}
-	
+
 	// 定义一个方法，获取本班成绩的综合信息
-	public static String getZongHe2(String dicName1, String cName,String course) {
+	public static String getZongHe2(String dicName1, String cName, String course) {
 		StringBuilder sb = new StringBuilder("");
 		int sum = 0;
 		double count = 0;
@@ -628,16 +645,207 @@ public final class MethodsManager {
 		}
 		return sb.toString();
 	}
-	
+
 	// 定义一个方法，获取本班所有老师对象
-	public static Set<Teacher> getTecObj(String dicName,String cName) {
+	public static Set<Teacher> getTecObj(String dicName, String cName) {
 		Set<Teacher> set = MethodsManager.getAllObj(dicName);
 		Set<Teacher> set2 = new HashSet<>();
-		for(Teacher t:set) {
-			if(t.getClassName().equals(cName)) {
+		for (Teacher t : set) {
+			if (t.getClassName().equals(cName)) {
 				set2.add(t);
 			}
 		}
 		return set2;
 	}
+
+	// 定义一个方法，判断给定的数是否为素数，并统计素数的个数
+	// ps：素数指大于1且只能被1和自身整数的自然数
+	public static List<Integer> isPrimeNumber(int num) {
+		List<Integer> lis = new ArrayList<>();
+		for (int i = 1; i <= num; i++) {
+			int count = 0;// 用来统计整除次数
+			for (int j = 1; j <= i; j++) {
+				if (i % j == 0) {
+					count++;
+				}
+				if (count > 2) {// 整除次数超过2，一定不是素数，此时可以跳出里层循环，提高效率
+					break;
+				}
+			}
+			if (count == 2) {// 定义素数的标准就是整除次数为2
+				lis.add(i);
+			}
+		}
+		return lis;
+	}
+
+	// 定义一个方法，统计任意磁盘下的文件目录
+	public static void getDic(String path) {
+		File file = new File(path + ":/");
+		String[] files = file.list();// 统计所有文件和目录
+		System.out.println(path + "盘下目录和文件的数量一共为：" + files.length + ",具体如下：");
+		for (int i = 0; i < files.length; i++) {
+			File file2 = new File(file + files[i]);
+			System.out.println(path + "-----" + "\t\t" + file2.getName() + "\t\t\t"
+					+ new SimpleDateFormat("YYYY-MM-dd hh:mm").format(new Date(file2.lastModified())) + "\t\t"
+					+ file2.length() + "\t");
+		}
+	}
+
+	/**
+	 * 以下定义一系列方法，用于压缩
+	 * 
+	 * @throws IOException
+	 */
+	public static void compress(String srcPath, String dscPath) throws IOException {
+		File srcFile = new File(srcPath);
+		File dscFile = new File(dscPath);// 实例化两个文件对象
+		if (!srcFile.exists()) {// 如果文件不存在，抛出异常
+			throw new FileNotFoundException(srcPath + "不存在！");
+		}
+		FileOutputStream fos = null;
+		ZipOutputStream zipOut = null;
+		try {
+			fos = new FileOutputStream(dscFile);// 实例化输出流对象
+			CheckedOutputStream cos = new CheckedOutputStream(fos, new CRC32());// 基于输出流对象实例化压缩输出流对象
+			zipOut = new ZipOutputStream(cos);
+			String baseDir = "";
+			compress(srcFile, zipOut, baseDir);// 调用后面定义的方法压缩文件
+			System.out.println("压缩已完成！");
+		} finally {// 以下关闭相关流，放在finally块里，强制执行，释放内存资源
+			if (zipOut != null) {
+				zipOut.close();
+				fos = null;
+			}
+			if (fos != null) {
+				fos.close();
+			}
+		}
+	}
+
+	private static void compress(File file, ZipOutputStream zipOut, String baseDir) throws IOException {
+		if (file.isDirectory()) {// 是目录的话调用压缩目录的方法
+			compressDirectory(file, zipOut, baseDir);
+		} else {// 否则调用压缩文件的方法
+			compressFile(file, zipOut, baseDir);
+		}
+	}
+
+	// 定义一个方法，用于压缩文件
+	private static void compressFile(File file, ZipOutputStream zipOut, String baseDir) throws IOException {
+		if (!file.exists()) {
+			return;
+		}
+
+		BufferedInputStream bis = null;// 定义缓冲输入流
+		try {
+			bis = new BufferedInputStream(new FileInputStream(file));// 实例化缓冲输入流对象
+			ZipEntry entry = new ZipEntry(baseDir + file.getName());// 实例化ZipEntry对象
+			zipOut.putNextEntry(entry);// 创建压缩流的进入点
+			int count;// 暂存器
+			byte[] bys = new byte[1024000];// 字节数组暂时容器
+			while ((count = bis.read(bys, 0, bys.length)) != -1) {// 当未到最后一个字符时
+				zipOut.write(bys, 0, count);// 压缩
+			}
+		} finally {
+			if (bis != null) {
+				bis.close();
+			}
+		}
+
+	}
+
+	// 定义一个方法，用于压缩目录
+	private static void compressDirectory(File dir, ZipOutputStream zipOut, String baseDir) throws IOException {
+		File[] files = dir.listFiles();
+		for (int i = 0; i < files.length; i++) {// 将目录中的所有文件遍历出来，再按压缩文件的方法处理
+			compress(files[i], zipOut, baseDir + dir.getName() + "/");
+		}
+
+	}
+
+	// 定义一个方法，搜索指定目录处的mp3文件
+	public static List<String> getMusic(String dicName) {
+		List<String> lis = new ArrayList<>();
+		File file = new File(dicName);
+		File[] files = file.listFiles();
+		for (int i = 0; i < file.length(); i++) {
+			System.out.println((i + 1) + "、" + files[i].getName());
+			lis.add(files[i].getName());
+			if (i == 9) {
+				break;
+			}
+		}
+		return lis;
+	}
+
+	// 定义一个方法，用来播放mp3格式音乐
+	private static Player player = null;
+
+	public static Thread playMp3(String dicName, String name) {
+		Thread t0 = null;
+		File mp3 = new File(dicName);
+		try {
+			FileInputStream in = new FileInputStream(mp3);
+			BufferedInputStream bis = new BufferedInputStream(in);
+			player = new Player(bis);
+			t0 = new Thread(() -> {
+				try {
+					player.play();
+				} catch (JavaLayerException e) {
+					e.printStackTrace();
+				}
+			}, name);
+			t0.start();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return t0;
+	}
+
+	// 定义一个方法，下载一首歌曲
+	public static void downMp3(String urlStr, String filePath, String name) {
+		File file = new File(filePath);
+		if (!file.exists()) {
+			file.mkdirs();
+		}
+		try {
+			URL url = new URL(urlStr);// 基于下载地址构建URL对象
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();// 打开链接
+			conn.setConnectTimeout(1000 * 5);// 设置超时时间
+			InputStream in = conn.getInputStream();// 基于链接获取输入流
+			File file2 = new File(filePath + "/" + name);// 保存的文件对象
+			FileOutputStream fos = new FileOutputStream(file2);// 建立输出流
+			byte[] bys = new byte[1024 * 1024 * 10];// 字节数组容器
+			int count = 0;
+			System.out.println("下载中.....");
+			while ((count = in.read(bys, 0, bys.length)) > 0) {
+				fos.write(bys, 0, count);
+			}
+			System.out.println("已下载完成！");
+			fos.close();
+			in.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// 定义一个方法，用于校验密码强度
+	public static void validatePass(String password) {
+		StringBuilder sb = new StringBuilder("");
+		String reg1 = "^\\d{6,16}";// 定义强度为弱
+		String reg2 = "^[a-zA-Z0-9]{6,16}$";// 定义强度为中
+		Pattern p = Pattern.compile(reg1);
+		Matcher m = p.matcher(password);
+		Pattern p2 = Pattern.compile(reg2);
+		Matcher m2 = p2.matcher(password);
+		if (m.matches()) {
+			System.out.println("密码强度较弱！");
+		}else if (m2.matches()) {
+			System.out.println("密码强度中等！");
+		}else{
+			System.out.println("密码强度较强！");
+		}
+	}
+
 }
