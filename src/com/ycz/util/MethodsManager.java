@@ -38,7 +38,7 @@ import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 
 /**
- * 此类用来封装一些方法
+ * 此类用来封装方法
  * 
  * @author Administrator
  *

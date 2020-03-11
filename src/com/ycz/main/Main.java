@@ -2445,7 +2445,7 @@ public class Main {
 								}
 								System.out.println("按任意键返回上一页：");
 								String any19 = in.next();
-								System.out.println("------------------------------");
+								System.out.println("-----------------------------");
 								b66 = true;
 								break;
 							case "7":
